@@ -41,7 +41,17 @@ while(True):
             PASSWORD = input("Enter password: ")
             print("\nPlease wait...")
         os.system("clear||cls")
-        input("chat_placeholder")
+        context = zmq.Context()
+        socket = context.socket(zmq.DEALER)
+        socket.connect(SERVER_ADDRESS)
+        while True:
+            send_str = input("Client: ")
+            socket.send_multipart((b"msg",send_str.encode()))
+            if send_str == "!quit":
+                break
+            type,recv_str = socket.recv_multipart()
+            print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server,")
+        socket.close()
     elif option == "2":
         while True:
             os.system("clear||cls")
