@@ -1,34 +1,34 @@
 import time
 import zmq
 import os
+import json
 
 
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.txt")
-SERVER_ADDRESS = "tcp://127.0.0.1:5555"
-USERNAME = None
-PASSWORD = None
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+CONFIG = {
+    "server": "tcp://127.0.0.1:5555",
+    "username": None,
+    "password": None,
+    "contacts": []
+}
 
 if os.path.isfile(CONFIG_FILE):
     with open(CONFIG_FILE, "r") as f:
-        lines = f.read().splitlines()
-        if len(lines) == 3:
-            SERVER_ADDRESS,USERNAME,PASSWORD = lines
-        else:
-            SERVER_ADDRESS = lines[0]
+        CONFIG = json.load(f)
 else:
     with open(CONFIG_FILE, "w") as f:
-        f.write(SERVER_ADDRESS)
+        json.dump(CONFIG, f)
 
 while(True):
     os.system("clear||cls")
-    print("1. Login\n2. Register\n3. Settings\n4. Quit\n\nEnter option: ", end="")
+    print("1. Login\n2. Register\n3. Settings\n4. Exit\n\nEnter option: ", end="")
     option = input()
 
     if option == "1":
         os.system("clear||cls")
-        if USERNAME is None or PASSWORD is None:
-            USERNAME = input("Enter username: ")
-            PASSWORD = input("Enter password: ")
+        if CONFIG["username"] is None:
+            CONFIG["username"] = input("Enter username: ")
+            CONFIG["password"] = input("Enter password: ")
         print("\nPlease wait...")
         valid_credentials = False
         while True:
@@ -37,20 +37,60 @@ while(True):
             if valid_credentials:
                 break
             print("Invalid credentials!\n")
-            USERNAME = input("Enter username: ")
-            PASSWORD = input("Enter password: ")
+            CONFIG["username"] = input("Enter username: ")
+            CONFIG["password"] = input("Enter password: ")
             print("\nPlease wait...")
-        os.system("clear||cls")
+        while True:
+            os.system("clear||cls")
+            print("1.Back\n2. Add contact\n3. Remove contact")
+            for i,contact in enumerate(CONFIG["contacts"]):
+                print(f"{i+4}. {contact}")
+            print("\nEnter option: ", end="")
+            option = input()
+            if option == "1":
+                break
+            elif option == "2":
+                os.system("clear||cls")
+                contact = input("Enter username: ")
+                #check if username exists
+                exists = True
+                if exists:
+                    CONFIG["contacts"].append(contact)
+                    with open(CONFIG_FILE, "r") as f:
+                        loaded_config = json.load(f)
+                    loaded_config["contacts"].append(contact)
+                    with open(CONFIG_FILE, "w") as f:
+                        json.dump(loaded_config, f)
+                else:
+                    input("\nUsername does not exist!\nPress enter to continue...")
+            elif option == "3":
+                os.system("clear||cls")
+                for i,contact in enumerate(CONFIG["contacts"]):
+                    print(f"{i}. {contact}")
+                contact_index = int(input("\nEnter option: ", end=""))
+                if contact_index < len(CONFIG["contacts"]):
+                    CONFIG["contacts"].pop(contact_index)
+                    with open(CONFIG_FILE, "r") as f:
+                        loaded_config = json.load(f)
+                    loaded_config["contacts"].pop(contact_index)
+                    with open(CONFIG_FILE, "w") as f:
+                        json.dump(loaded_config, f)
+                else:
+                    input("\nInvalid option!\nPress enter to continue...")
+
+
+            else:
+                input("\nInvalid option!\nPress enter to continue...")
         context = zmq.Context()
-        socket = context.socket(zmq.DEALER)
-        socket.connect(SERVER_ADDRESS)
+        socket = context.socket(zmq.REQ)
+        socket.connect(CONFIG["server"])
         while True:
             send_str = input("Client: ")
             socket.send_multipart((b"msg",send_str.encode()))
-            if send_str == "!quit":
+            if send_str == "!back":
                 break
             type,recv_str = socket.recv_multipart()
-            print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server,")
+            print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server")
         socket.close()
     elif option == "2":
         while True:
@@ -62,14 +102,14 @@ while(True):
             #check and register and set available
             available = True
             if available:
-                USERNAME = username
-                PASSWORD = password
+                CONFIG["username"] = username
+                CONFIG["password"] = password
                 print("\nRegistration successful!\n")
                 while True:
                     save = input("Save username and password for quick login? (y/n): ")
                     if save == "y":
                         with open(CONFIG_FILE, "w") as f:
-                            f.write(SERVER_ADDRESS + "\n" + USERNAME + "\n" + PASSWORD)
+                            json.dump(CONFIG, f)
                         input("\nUsername and password saved successfully!\nPress Enter to continue...")
                         break
                     elif save == "n":
@@ -88,22 +128,19 @@ while(True):
             if option == "1":
                 os.system("clear||cls")
                 with open(CONFIG_FILE, "r") as f:
-                    lines = f.read().splitlines()
-                if len(lines) == 3:
-                    print("Username: " + lines[1] + "\nPassword: " + lines[2])
-                    input("\nPress Enter to continue...")
+                    loaded_config = json.load(f)
+                if loaded_config["username"] is not None:
+                    print(f'Username: {loaded_config["username"]}\nPassword: {loaded_config["password"]}')
                 else:
                     print("No saved credentials found!")
-                    input("\nPress Enter to continue...")
+                input("\nPress Enter to continue...")
 
             elif option == "2":
                 os.system("clear||cls")
-                username = input("Enter username: ")
-                password = input("Enter password: ")
-                USERNAME = username
-                PASSWORD = password
+                CONFIG["username"] = input("Enter username: ")
+                CONFIG["password"] = input("Enter password: ")
                 with open(CONFIG_FILE, "w") as f:
-                    f.write(SERVER_ADDRESS + "\n" + USERNAME + "\n" + PASSWORD)
+                    json.dump(CONFIG,f)
                 input("\nUsername and password saved successfully!\nPress Enter to continue...")
              
             elif option == "3":
@@ -113,13 +150,9 @@ while(True):
                     confirm = input("Confirm? (y/n): ")
 
                     if confirm == "y":
-                        SERVER_ADDRESS = sev_addr
-                        if USERNAME is None or PASSWORD is None:
-                            with open(CONFIG_FILE, "w") as f:
-                                f.write(SERVER_ADDRESS)
-                        else:
-                            with open(CONFIG_FILE, "w") as f:
-                                f.write(SERVER_ADDRESS + "\n" + USERNAME + "\n" + PASSWORD)
+                        CONFIG["server"] = sev_addr
+                        with open(CONFIG_FILE, "w") as f:
+                            json.dump(CONFIG, f)
                         input("\nServer address changed successfully!\nPress Enter to continue...")
                         break
                     elif confirm == "n":
