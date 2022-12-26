@@ -42,12 +42,12 @@ while(True):
             print("\nPlease wait...")
         while True:
             os.system("clear||cls")
-            print("1.Back\n2. Add contact\n3. Remove contact")
+            print("1. Back\n2. Add contact\n3. Remove contact")
             for i,contact in enumerate(CONFIG["contacts"]):
                 print(f"{i+4}. {contact}")
             print("\nEnter option: ", end="")
             option = input()
-            if option.is_digit():
+            if option.isdigit():
                 option = int(option)
             else:
                 input("\nInvalid option!\nPress enter to continue...")
@@ -70,12 +70,12 @@ while(True):
                     input("\nUsername does not exist!\nPress enter to continue...")
             elif option == 3:
                 #decide menu format
-                os.system("clear||cls")
                 while True:
-                    print("0.Back")
+                    os.system("clear||cls")
+                    print("Select contact to delete\n\n0. Cancel")
                     for i,contact in enumerate(CONFIG["contacts"]):
                         print(f"{i+1}. {contact}")
-                    contact_index = input("\nEnter option: ", end="")
+                    contact_index = input("\nEnter option: ")
                     if contact_index.isdigit():
                         contact_index = int(contact_index)
                     else:
@@ -94,21 +94,21 @@ while(True):
                     else:
                         input("\nInvalid option!\nPress enter to continue...")
             elif option > 3 and option <= len(CONFIG["contacts"])+3:
-                #print chat
+                #print chat with CONFIG["contacts"][option - 4]
                 pass #remove
             else:
                 input("\nInvalid option!\nPress enter to continue...")
-        context = zmq.Context()
-        socket = context.socket(zmq.REQ)
-        socket.connect(CONFIG["server"])
-        while True:
-            send_str = input("Client: ")
-            socket.send_multipart((b"msg",send_str.encode()))
-            if send_str == "!back":
-                break
-            type,recv_str = socket.recv_multipart()
-            print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server")
-        socket.close()
+            # context = zmq.Context()
+            # socket = context.socket(zmq.REQ)
+            # socket.connect(CONFIG["server"])
+            # while True:
+            #     send_str = input("Client: ")
+            #     socket.send_multipart((b"msg",send_str.encode()))
+            #     if send_str == "!back":
+            #         break
+            #     type,recv_str = socket.recv_multipart()
+            #     print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server")
+            # socket.close()
     elif option == "2":
         while True:
             os.system("clear||cls")
@@ -119,12 +119,12 @@ while(True):
             #check and register and set available
             available = True
             if available:
-                CONFIG["username"] = username
-                CONFIG["password"] = password
                 print("\nRegistration successful!\n")
                 while True:
                     save = input("Save username and password for quick login? (y/n): ")
                     if save == "y":
+                        CONFIG["username"] = username
+                        CONFIG["password"] = password
                         with open(CONFIG_FILE, "w") as f:
                             json.dump(CONFIG, f)
                         input("\nUsername and password saved successfully!\nPress Enter to continue...")
