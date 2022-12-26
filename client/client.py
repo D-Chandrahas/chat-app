@@ -19,6 +19,10 @@ else:
     with open(CONFIG_FILE, "w") as f:
         json.dump(CONFIG, f)
 
+context = zmq.Context()
+socket = context.socket(zmq.REQ)
+socket.connect(CONFIG["server"])
+
 while(True):
     os.system("clear||cls")
     print("1. Login\n2. Register\n3. Settings\n4. Exit\n\nEnter option: ", end="")
@@ -32,9 +36,9 @@ while(True):
         print("\nPlease wait...")
         valid_credentials = False
         while True:
-            #check and login and set valid_credentials
-            valid_credentials = True
-            if valid_credentials:
+            socket.send_multipart(("login".encode(),CONFIG["username"].encode(),CONFIG["password"].encode(),"None".encode()))
+            valid_credentials = socket.recv().decode()
+            if valid_credentials == "True":
                 break
             print("Invalid credentials!\n")
             CONFIG["username"] = input("Enter username: ")
@@ -57,9 +61,9 @@ while(True):
             elif option == 2:
                 os.system("clear||cls")
                 contact = input("Enter username: ")
-                #check if username exists
-                exists = True
-                if exists:
+                socket.send_multipart(("contact".encode(),contact.encode(),"None".encode(),"None".encode()))
+                exists = socket.recv().decode()
+                if exists == "True":
                     CONFIG["contacts"].append(contact)
                     with open(CONFIG_FILE, "r") as f:
                         loaded_config = json.load(f)
@@ -68,8 +72,8 @@ while(True):
                         json.dump(loaded_config, f)
                 else:
                     input("\nUsername does not exist!\nPress enter to continue...")
+
             elif option == 3:
-                #decide menu format
                 while True:
                     os.system("clear||cls")
                     print("Select contact to delete\n\n0. Cancel")
@@ -81,8 +85,10 @@ while(True):
                     else:
                         input("\nInvalid option!\nPress enter to continue...")
                         continue
+
                     if contact_index == 0:
                         break
+
                     elif contact_index > 0 and contact_index <= len(CONFIG["contacts"]):
                         CONFIG["contacts"].pop(contact_index-1)
                         with open(CONFIG_FILE, "r") as f:
@@ -91,16 +97,37 @@ while(True):
                         with open(CONFIG_FILE, "w") as f:
                             json.dump(loaded_config, f)
                         input("\nContact removed successfully!\nPress enter to continue...")
+
                     else:
                         input("\nInvalid option!\nPress enter to continue...")
+
             elif option > 3 and option <= len(CONFIG["contacts"])+3:
-                #print chat with CONFIG["contacts"][option - 4]
-                pass #remove
+                username = CONFIG["username"]
+                contact = CONFIG["contacts"][option - 4]
+                socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
+                conv = socket.recv() #placeholder
+                #refresh and print screen
+                while True:
+                    msg = input("You: ")
+
+                    if msg == "!exit" :
+                        break
+
+                    elif msg == "!refresh" :
+                        socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
+                        conv = socket.recv() #placeholder
+                        #refresh and print screen
+
+                    else:
+                        socket.send_multipart(("msg".encode(),username.encode(),contact.encode(),msg.encode()))
+                        confirm = socket.recv().decode()
+                        if confirm != "True":
+                            print("Failed to send message!")
+                    print()
+
             else:
                 input("\nInvalid option!\nPress enter to continue...")
-            # context = zmq.Context()
-            # socket = context.socket(zmq.REQ)
-            # socket.connect(CONFIG["server"])
+
             # while True:
             #     send_str = input("Client: ")
             #     socket.send_multipart((b"msg",send_str.encode()))
@@ -108,20 +135,21 @@ while(True):
             #         break
             #     type,recv_str = socket.recv_multipart()
             #     print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server")
-            # socket.close()
+
     elif option == "2":
         while True:
             os.system("clear||cls")
-            #20 char limit and no special characters
+            #20 char limit and no special characters(?)
             username = input("Enter new username: ")
             password = input("Enter new password: ")
             print("\nPlease wait...")
-            #check and register and set available
-            available = True
-            if available:
+            socket.send_multipart(("register".encode(),username.encode(),password.encode(),"None".encode()))
+            available = socket.recv().decode()
+            if available == "True":
                 print("\nRegistration successful!\n")
                 while True:
                     save = input("Save username and password for quick login? (y/n): ")
+
                     if save == "y":
                         CONFIG["username"] = username
                         CONFIG["password"] = password
@@ -129,13 +157,18 @@ while(True):
                             json.dump(CONFIG, f)
                         input("\nUsername and password saved successfully!\nPress Enter to continue...")
                         break
+
                     elif save == "n":
                         break
+
                     else:
                         print("Invalid option\n")
+
                 break
+
             else :
                 input("\nUsername not available!\nPress Enter to retry...")
+
     elif option == "3":
         while True:
             os.system("clear||cls")
@@ -163,6 +196,7 @@ while(True):
             elif option == "3":
                 os.system("clear||cls")
                 sev_addr = input("Enter new server address: ")
+
                 while True:
                     confirm = input("Confirm? (y/n): ")
 
@@ -175,19 +209,25 @@ while(True):
                             json.dump(loaded_config, f)
                         input("\nServer address changed successfully!\nPress Enter to continue...")
                         break
+
                     elif confirm == "n":
                         input("\nServer address change cancelled!\nPress Enter to continue...")
                         break
+
                     else:
                         print("\nInvalid option\n")
 
             elif option == "4":
                 break
+
             else:
                 input("Invalid option...Press Enter to continue...")
 
     elif option == "4":
         os.system("clear||cls")
         break
+
     else:
         input("Invalid option...Press Enter to continue...")
+
+socket.close()
