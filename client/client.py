@@ -47,9 +47,14 @@ while(True):
                 print(f"{i+4}. {contact}")
             print("\nEnter option: ", end="")
             option = input()
-            if option == "1":
+            if option.is_digit():
+                option = int(option)
+            else:
+                input("\nInvalid option!\nPress enter to continue...")
+                continue
+            if option == 1:
                 break
-            elif option == "2":
+            elif option == 2:
                 os.system("clear||cls")
                 contact = input("Enter username: ")
                 #check if username exists
@@ -63,22 +68,34 @@ while(True):
                         json.dump(loaded_config, f)
                 else:
                     input("\nUsername does not exist!\nPress enter to continue...")
-            elif option == "3":
+            elif option == 3:
+                #decide menu format
                 os.system("clear||cls")
-                for i,contact in enumerate(CONFIG["contacts"]):
-                    print(f"{i}. {contact}")
-                contact_index = int(input("\nEnter option: ", end=""))
-                if contact_index < len(CONFIG["contacts"]):
-                    CONFIG["contacts"].pop(contact_index)
-                    with open(CONFIG_FILE, "r") as f:
-                        loaded_config = json.load(f)
-                    loaded_config["contacts"].pop(contact_index)
-                    with open(CONFIG_FILE, "w") as f:
-                        json.dump(loaded_config, f)
-                else:
-                    input("\nInvalid option!\nPress enter to continue...")
-
-
+                while True:
+                    print("0.Back")
+                    for i,contact in enumerate(CONFIG["contacts"]):
+                        print(f"{i+1}. {contact}")
+                    contact_index = input("\nEnter option: ", end="")
+                    if contact_index.isdigit():
+                        contact_index = int(contact_index)
+                    else:
+                        input("\nInvalid option!\nPress enter to continue...")
+                        continue
+                    if contact_index == 0:
+                        break
+                    elif contact_index > 0 and contact_index <= len(CONFIG["contacts"]):
+                        CONFIG["contacts"].pop(contact_index-1)
+                        with open(CONFIG_FILE, "r") as f:
+                            loaded_config = json.load(f)
+                        loaded_config["contacts"].pop(contact_index-1)
+                        with open(CONFIG_FILE, "w") as f:
+                            json.dump(loaded_config, f)
+                        input("\nContact removed successfully!\nPress enter to continue...")
+                    else:
+                        input("\nInvalid option!\nPress enter to continue...")
+            elif option > 3 and option <= len(CONFIG["contacts"])+3:
+                #print chat
+                pass #remove
             else:
                 input("\nInvalid option!\nPress enter to continue...")
         context = zmq.Context()
@@ -151,15 +168,18 @@ while(True):
 
                     if confirm == "y":
                         CONFIG["server"] = sev_addr
+                        with open(CONFIG_FILE, "r") as f:
+                            loaded_config = json.load(f)
+                        loaded_config["server"] = sev_addr
                         with open(CONFIG_FILE, "w") as f:
-                            json.dump(CONFIG, f)
+                            json.dump(loaded_config, f)
                         input("\nServer address changed successfully!\nPress Enter to continue...")
                         break
                     elif confirm == "n":
                         input("\nServer address change cancelled!\nPress Enter to continue...")
                         break
                     else:
-                        print("\nInvalid option")
+                        print("\nInvalid option\n")
 
             elif option == "4":
                 break
