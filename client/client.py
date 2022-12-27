@@ -34,7 +34,7 @@ while(True):
             CONFIG["username"] = input("Enter username: ")
             CONFIG["password"] = input("Enter password: ")
         print("\nPlease wait...")
-        valid_credentials = False
+
         while True:
             socket.send_multipart(("login".encode(),CONFIG["username"].encode(),CONFIG["password"].encode(),"None".encode()))
             valid_credentials = socket.recv().decode()
@@ -44,6 +44,8 @@ while(True):
             CONFIG["username"] = input("Enter username: ")
             CONFIG["password"] = input("Enter password: ")
             print("\nPlease wait...")
+
+        username = CONFIG["username"]
         while True:
             os.system("clear||cls")
             print("1. Back\n2. Add contact\n3. Remove contact")
@@ -102,12 +104,12 @@ while(True):
                         input("\nInvalid option!\nPress enter to continue...")
 
             elif option > 3 and option <= len(CONFIG["contacts"])+3:
-                username = CONFIG["username"]
                 contact = CONFIG["contacts"][option - 4]
                 socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
                 conv = socket.recv() #placeholder
                 #refresh and print screen
                 while True:
+                    #auto-refresh using another thread(?)
                     msg = input("You: ")
 
                     if msg == "!exit" :
@@ -115,7 +117,7 @@ while(True):
 
                     elif msg == "!refresh" :
                         socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                        conv = socket.recv() #placeholder
+                        conv = socket.recv().decode() #placeholder
                         #refresh and print screen
 
                     else:
