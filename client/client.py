@@ -1,7 +1,9 @@
-import time
 import zmq
 import os
 import json
+from io import StringIO
+import pandas as pd
+
 
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
@@ -110,22 +112,24 @@ while(True):
                 #refresh and print screen
                 while True:
                     #auto-refresh using another thread(?)
-                    msg = input("You: ")
+                    msg = input(f"{username}: ")
 
                     if msg == "!exit" :
                         break
 
                     elif msg == "!refresh" :
+                        #check once
                         socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                        conv = socket.recv().decode() #placeholder
-                        #refresh and print screen
+                        conv = pd.read_csv(StringIO(socket.recv().decode()))
+                        for sender, _, msg in conv.itertuples(index=False, name=None):
+                            print(f"{sender}: {msg}")
+                        #####
 
                     else:
                         socket.send_multipart(("msg".encode(),username.encode(),contact.encode(),msg.encode()))
                         confirm = socket.recv().decode()
                         if confirm != "True":
-                            print("Failed to send message!")
-                    print()
+                            print("Failed to send message!\n")
 
             else:
                 input("\nInvalid option!\nPress enter to continue...")
