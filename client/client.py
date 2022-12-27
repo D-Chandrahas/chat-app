@@ -106,10 +106,13 @@ while(True):
                         input("\nInvalid option!\nPress enter to continue...")
 
             elif option > 3 and option <= len(CONFIG["contacts"])+3:
+                os.system("clear||cls")
                 contact = CONFIG["contacts"][option - 4]
                 socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                conv = socket.recv() #placeholder
-                #refresh and print screen
+                conv = pd.read_csv(StringIO(socket.recv().decode()))
+                for sender, _, msg in conv.itertuples(index=False, name=None):
+                    print(f"{sender}: {msg}")
+
                 while True:
                     #auto-refresh using another thread(?)
                     msg = input(f"{username}: ")
@@ -118,12 +121,11 @@ while(True):
                         break
 
                     elif msg == "!refresh" :
-                        #check once
+                        os.system("clear||cls")
                         socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
                         conv = pd.read_csv(StringIO(socket.recv().decode()))
                         for sender, _, msg in conv.itertuples(index=False, name=None):
                             print(f"{sender}: {msg}")
-                        #####
 
                     else:
                         socket.send_multipart(("msg".encode(),username.encode(),contact.encode(),msg.encode()))
@@ -133,14 +135,6 @@ while(True):
 
             else:
                 input("\nInvalid option!\nPress enter to continue...")
-
-            # while True:
-            #     send_str = input("Client: ")
-            #     socket.send_multipart((b"msg",send_str.encode()))
-            #     if send_str == "!back":
-            #         break
-            #     type,recv_str = socket.recv_multipart()
-            #     print(f"Received \"{recv_str.decode()}\" of type {type.decode()} from server")
 
     elif option == "2":
         while True:
