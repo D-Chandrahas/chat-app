@@ -1,14 +1,12 @@
 import zmq
 import os
 import json
-from io import StringIO
-import pandas as pd
 
 
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 CONFIG = {
-    "server": "tcp://127.0.0.1:5555",
+    "server": "tcp://chat-app-server.centralindia.cloudapp.azure.com",
     "username": None,
     "password": None,
     "contacts": []
@@ -109,8 +107,9 @@ while(True):
                 os.system("clear||cls")
                 contact = CONFIG["contacts"][option - 4]
                 socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                conv = pd.read_csv(StringIO(socket.recv().decode()))
-                for sender, _, msg in conv.itertuples(index=False, name=None):
+                conv = socket.recv().decode()
+                for row in conv.splitlines():
+                    sender, msg = row.split(",")
                     print(f"{sender}: {msg}")
 
                 while True:
@@ -123,8 +122,9 @@ while(True):
                     elif msg == "!refresh" :
                         os.system("clear||cls")
                         socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                        conv = pd.read_csv(StringIO(socket.recv().decode()))
-                        for sender, _, msg in conv.itertuples(index=False, name=None):
+                        conv = socket.recv().decode()
+                        for row in conv.splitlines():
+                            sender, msg = row.split(",")
                             print(f"{sender}: {msg}")
 
                     else:
