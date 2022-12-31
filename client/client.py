@@ -6,10 +6,9 @@ import json
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 CONFIG = {
-    "server": "tcp://chat-app-server.centralindia.cloudapp.azure.com",
+    "server": "tcp://127.0.0.1:5555",
     "username": None,
-    "password": None,
-    "contacts": []
+    "password": None
 }
 
 if os.path.isfile(CONFIG_FILE):
@@ -31,25 +30,40 @@ while(True):
     if option == "1":
         os.system("clear||cls")
         if CONFIG["username"] is None:
-            CONFIG["username"] = input("Enter username: ")
-            CONFIG["password"] = input("Enter password: ")
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            if(username == "!back" or password == "!back"):
+                continue
+        else:
+            username = CONFIG["username"]
+            password = CONFIG["password"]
         print("\nPlease wait...")
 
+        continue_loop = False
+
         while True:
-            socket.send_multipart(("login".encode(),CONFIG["username"].encode(),CONFIG["password"].encode(),"None".encode()))
+            socket.send_multipart(("login".encode(),username.encode(),password.encode(),"None".encode()))
             valid_credentials = socket.recv().decode()
             if valid_credentials == "True":
                 break
             print("Invalid credentials!\n")
-            CONFIG["username"] = input("Enter username: ")
-            CONFIG["password"] = input("Enter password: ")
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            if(username == "!back" or password == "!back"):
+                continue_loop = True
+                break
             print("\nPlease wait...")
 
-        username = CONFIG["username"]
+        if continue_loop: continue
+
         while True:
+            print("please wait...")
+            socket.send_multipart(("contacts".encode(),username.encode(),"None".encode(),"None".encode()))
+            contacts = socket.recv().decode()
+            contacts = contacts.splitlines()
             os.system("clear||cls")
-            print("1. Back\n2. Add contact\n3. Remove contact")
-            for i,contact in enumerate(CONFIG["contacts"]):
+            print("0. Back\n1. Add contact\n2. Remove contact\n3. Refresh contacts")
+            for i,contact in enumerate(contacts):
                 print(f"{i+4}. {contact}")
             print("\nEnter option: ", end="")
             option = input()
@@ -58,28 +72,30 @@ while(True):
             else:
                 input("\nInvalid option!\nPress enter to continue...")
                 continue
-            if option == 1:
+            if option == 0:
                 break
-            elif option == 2:
+            elif option == 1:
                 os.system("clear||cls")
                 contact = input("Enter username: ")
-                socket.send_multipart(("contact".encode(),contact.encode(),"None".encode(),"None".encode()))
+                if(contact == "!back"): continue
+                if(contact == username):
+                    input("\nYou cannot add yourself!\nPress enter to continue...")
+                    continue
+                if(contact in contacts):
+                    input("\nContact already added!\nPress enter to continue...")
+                    continue
+                socket.send_multipart(("add".encode(),username.encode(),contact.encode(),"None".encode()))
                 exists = socket.recv().decode()
                 if exists == "True":
-                    CONFIG["contacts"].append(contact)
-                    with open(CONFIG_FILE, "r") as f:
-                        loaded_config = json.load(f)
-                    loaded_config["contacts"].append(contact)
-                    with open(CONFIG_FILE, "w") as f:
-                        json.dump(loaded_config, f)
+                    contacts.append(contact)
                 else:
                     input("\nUsername does not exist!\nPress enter to continue...")
 
-            elif option == 3:
+            elif option == 2:
                 while True:
                     os.system("clear||cls")
                     print("Select contact to delete\n\n0. Cancel")
-                    for i,contact in enumerate(CONFIG["contacts"]):
+                    for i,contact in enumerate(contacts):
                         print(f"{i+1}. {contact}")
                     contact_index = input("\nEnter option: ")
                     if contact_index.isdigit():
@@ -91,38 +107,45 @@ while(True):
                     if contact_index == 0:
                         break
 
-                    elif contact_index > 0 and contact_index <= len(CONFIG["contacts"]):
-                        CONFIG["contacts"].pop(contact_index-1)
-                        with open(CONFIG_FILE, "r") as f:
-                            loaded_config = json.load(f)
-                        loaded_config["contacts"].pop(contact_index-1)
-                        with open(CONFIG_FILE, "w") as f:
-                            json.dump(loaded_config, f)
-                        input("\nContact removed successfully!\nPress enter to continue...")
+                    elif contact_index > 0 and contact_index <= len(contacts):
+                        contact = contacts[contact_index-1]
+                        socket.send_multipart(("remove".encode(),username.encode(),contact.encode(),"None".encode()))
+                        removed = socket.recv().decode()
+                        if removed == "True":
+                            contacts.pop(contact_index-1)
+                            input("\nContact removed successfully!\nPress enter to continue...")
+                        else :
+                            input("\nFailed to remove contact!\nPress enter to continue...")
 
                     else:
                         input("\nInvalid option!\nPress enter to continue...")
 
-            elif option > 3 and option <= len(CONFIG["contacts"])+3:
-                os.system("clear||cls")
-                contact = CONFIG["contacts"][option - 4]
-                socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                conv = socket.recv().decode()
-                for row in conv.splitlines():
-                    sender, msg = row.split(",")
-                    print(f"{sender}: {msg}")
+            elif option == 3:
+                continue
+
+            elif option > 3 and option <= len(contacts)+3:
+                contact = contacts[option - 4]
+                print("please wait...")
 
                 while True:
                     #auto-refresh using another thread(?)
+                    socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
+                    conv = socket.recv().decode()
+                    os.system("clear||cls")
+                    for row in conv.splitlines():
+                        sender, msg = row.split(",")
+                        print(f"{sender}: {msg}")
+
                     msg = input(f"{username}: ")
 
-                    if msg == "!exit" :
+                    if msg == "!back" :
                         break
 
                     elif msg == "!refresh" :
-                        os.system("clear||cls")
+                        print("please wait...")
                         socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
                         conv = socket.recv().decode()
+                        os.system("clear||cls")
                         for row in conv.splitlines():
                             sender, msg = row.split(",")
                             print(f"{sender}: {msg}")
@@ -131,7 +154,7 @@ while(True):
                         socket.send_multipart(("msg".encode(),username.encode(),contact.encode(),msg.encode()))
                         confirm = socket.recv().decode()
                         if confirm != "True":
-                            print("Failed to send message!\n")
+                            input("Failed to send message!\nPress enter to continue...")
 
             else:
                 input("\nInvalid option!\nPress enter to continue...")
@@ -142,6 +165,7 @@ while(True):
             #20 char limit and no special characters(?)
             username = input("Enter new username: ")
             password = input("Enter new password: ")
+            if(username == "!back" or password == "!back"): break
             print("\nPlease wait...")
             socket.send_multipart(("register".encode(),username.encode(),password.encode(),"None".encode()))
             available = socket.recv().decode()
@@ -187,8 +211,12 @@ while(True):
 
             elif option == "2":
                 os.system("clear||cls")
-                CONFIG["username"] = input("Enter username: ")
-                CONFIG["password"] = input("Enter password: ")
+                username = input("Enter username: ")
+                password = input("Enter password: ")
+                if username == "!back" or password == "!back": continue
+                else:
+                    CONFIG["username"] = username
+                    CONFIG["password"] = password
                 with open(CONFIG_FILE, "w") as f:
                     json.dump(CONFIG,f)
                 input("\nUsername and password saved successfully!\nPress Enter to continue...")
@@ -196,6 +224,7 @@ while(True):
             elif option == "3":
                 os.system("clear||cls")
                 sev_addr = input("Enter new server address: ")
+                if sev_addr == "!back": continue
 
                 while True:
                     confirm = input("Confirm? (y/n): ")
