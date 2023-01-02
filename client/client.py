@@ -75,6 +75,10 @@ while(True):
             if option == 0:
                 break
             elif option == 1:
+                print("please wait...")
+                socket.send_multipart(("contacts".encode(),username.encode(),"None".encode(),"None".encode()))
+                contacts = socket.recv().decode()
+                contacts = contacts.splitlines()
                 os.system("clear||cls")
                 contact = input("Enter username: ")
                 if(contact == "!back"): continue
