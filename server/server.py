@@ -62,7 +62,9 @@ while True:
         res = cur.execute("SELECT contacts FROM users WHERE username = ?",(part1,))
         contacts = res.fetchone()[0].splitlines()
         contacts.remove(part2)
-        contacts = "\n".join(contacts) + "\n"
+        contacts = "\n".join(contacts)
+        if(len(contacts) > 0):
+            contacts += "\n"
         cur.execute("UPDATE users SET contacts = ? WHERE username = ?",(contacts,part1))
         con.commit()
         socket.send("True".encode())
