@@ -137,10 +137,10 @@ while(True):
 
                     msg = input(f"{username}: ")
 
-                    if msg == "!back" :
+                    if msg == "!back" or msg == "!b":
                         break
 
-                    elif msg == "!refresh" :
+                    elif msg == "!refresh" or msg == "!r":
                         print("please wait...")
                         socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
                         conv = socket.recv().decode()
