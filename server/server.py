@@ -17,9 +17,9 @@ socket.bind("tcp://*:5555")
 while True:
     type,part1,part2,part3 = socket.recv_multipart()
 
+    type = type.decode()
     print(f"[{time()}] received {type} request")
 
-    type = type.decode()
     part1 = part1.decode()
     part2 = part2.decode()
     part3 = part3.decode()
@@ -75,6 +75,10 @@ while True:
             socket.send("True".encode())
         else:
             socket.send("False".encode())
+
+    elif(type == "terminate"):
+        socket.send("True".encode())
+        break
 
     print(f"[{time()}] replied to {type} request")
 
