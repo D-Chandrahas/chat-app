@@ -92,33 +92,32 @@ while(True):
                     input("\nUsername does not exist!\nPress enter to continue...")
 
             elif option == 2:
-                while True:
-                    os.system("clear||cls")
-                    print("Select contact to delete\n\n0. Cancel")
-                    for i,contact in enumerate(contacts):
-                        print(f"{i+1}. {contact}")
-                    contact_index = input("\nEnter option: ")
-                    if contact_index.isdigit():
-                        contact_index = int(contact_index)
-                    else:
-                        input("\nInvalid option!\nPress enter to continue...")
-                        continue
+                os.system("clear||cls")
+                print("Select contact to delete\n\n0. Cancel")
+                for i,contact in enumerate(contacts):
+                    print(f"{i+1}. {contact}")
+                contact_index = input("\nEnter option: ")
+                if contact_index.isdigit():
+                    contact_index = int(contact_index)
+                else:
+                    input("\nInvalid option!\nPress enter to continue...")
+                    continue
 
-                    if contact_index == 0:
-                        break
+                if contact_index == 0:
+                    continue
 
-                    elif contact_index > 0 and contact_index <= len(contacts):
-                        contact = contacts[contact_index-1]
-                        socket.send_multipart(("remove".encode(),username.encode(),contact.encode(),"None".encode()))
-                        removed = socket.recv().decode()
-                        if removed == "True":
-                            contacts.pop(contact_index-1)
-                            input("\nContact removed successfully!\nPress enter to continue...")
-                        else :
-                            input("\nFailed to remove contact!\nPress enter to continue...")
+                elif contact_index > 0 and contact_index <= len(contacts):
+                    contact = contacts[contact_index-1]
+                    socket.send_multipart(("remove".encode(),username.encode(),contact.encode(),"None".encode()))
+                    removed = socket.recv().decode()
+                    if removed == "True":
+                        contacts.pop(contact_index-1)
+                        input("\nContact removed successfully!\nPress enter to continue...")
+                    else :
+                        input("\nFailed to remove contact!\nPress enter to continue...")
 
-                    else:
-                        input("\nInvalid option!\nPress enter to continue...")
+                else:
+                    input("\nInvalid option!\nPress enter to continue...")
 
             elif option == 3:
                 continue
