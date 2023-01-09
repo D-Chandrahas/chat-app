@@ -164,3 +164,6 @@ config.json
 
 # databases
 main.db
+
+# test clients
+client*/
