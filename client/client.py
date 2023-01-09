@@ -75,25 +75,21 @@ while(True):
             if option == 0:
                 break
             elif option == 1:
-                print("please wait...")
-                socket.send_multipart(("contacts".encode(),username.encode(),"None".encode(),"None".encode()))
-                contacts = socket.recv().decode()
-                contacts = contacts.splitlines()
                 os.system("clear||cls")
                 contact = input("Enter username: ")
                 if(contact == "!back"): continue
                 if(contact == username):
                     input("\nYou cannot add yourself!\nPress enter to continue...")
                     continue
-                if(contact in contacts):
-                    input("\nContact already added!\nPress enter to continue...")
-                    continue
+                print("please wait...")
                 socket.send_multipart(("add".encode(),username.encode(),contact.encode(),"None".encode()))
                 exists = socket.recv().decode()
                 if exists == "True":
                     contacts.append(contact)
-                else:
+                elif exists == "False":
                     input("\nUsername does not exist!\nPress enter to continue...")
+                else:
+                    input("\nContact already added!\nPress enter to continue...")
 
             elif option == 2:
                 os.system("clear||cls")

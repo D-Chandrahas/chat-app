@@ -13,6 +13,7 @@ context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 
+print("Server started")
 
 while True:
     type,part1,part2,part3 = socket.recv_multipart()
@@ -53,10 +54,21 @@ while True:
         if(res.fetchone() is None):
             socket.send("False".encode())
         else:
-            cur.execute("UPDATE users SET contacts = contacts || ? WHERE username = ?",(part2 + "\n", part1))
-            cur.execute("UPDATE users SET contacts = contacts || ? WHERE username = ?",(part1 + "\n", part2))
-            con.commit()
-            socket.send("True".encode())
+            res = cur.execute("SELECT contacts FROM users WHERE username = ?",(part1,))
+            contacts = res.fetchone()[0]
+            contacts = contacts.splitlines()
+            if(part2 in contacts):
+                socket.send("Already".encode())
+            else:
+                cur.execute("UPDATE users SET contacts = contacts || ? WHERE username = ?",(part2 + "\n", part1))
+                con.commit()
+                res = cur.execute("SELECT contacts FROM users WHERE username = ?",(part2,))
+                contacts = res.fetchone()[0]
+                contacts = contacts.splitlines()
+                if(part1 not in contacts):
+                    cur.execute("UPDATE users SET contacts = contacts || ? WHERE username = ?",(part1 + "\n", part2))
+                    con.commit()
+                socket.send("True".encode())
 
     elif(type == "remove"):
         res = cur.execute("SELECT contacts FROM users WHERE username = ?",(part1,))
@@ -85,5 +97,5 @@ while True:
     print(f"[{time()}] replied to {type} request")
 
     sleep(1)
-
+print("Server terminated")
 socket.close()
