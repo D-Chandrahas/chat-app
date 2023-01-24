@@ -166,4 +166,4 @@ config.json
 main.db
 
 # test clients
-client*/
+client[1-9]/

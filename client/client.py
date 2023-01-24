@@ -6,7 +6,7 @@ import json
 
 CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 CONFIG = {
-    "server": "tcp://127.0.0.1:5555",
+    "server": "tcp://127.0.0.1:3000",
     "username": None,
     "password": None
 }
