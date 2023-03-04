@@ -1,9 +1,12 @@
 import zmq
 from time import time,sleep
 import sqlite3
+import os
 
 
-con = sqlite3.connect("main.db")
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "db.sqlite")
+
+con = sqlite3.connect(db_path)
 cur = con.cursor()
 cur.execute("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username TEXT, password TEXT, contacts TEXT)")
 cur.execute("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY, sender TEXT, receiver TEXT, message TEXT, time INTEGER)")

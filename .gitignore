@@ -163,7 +163,7 @@ cython_debug/
 config.json
 
 # databases
-main.db
+*.sqlite
 
 # test clients
 client[1-9]/
