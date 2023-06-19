@@ -49,6 +49,8 @@ while(True):
             socket.send_multipart(("login".encode(),username.encode(),password.encode(),"None".encode()))
             valid_credentials = socket.recv().decode()
             if valid_credentials == "True":
+                CONFIG["username"] = username
+                CONFIG["password"] = password
                 break
             print("Invalid credentials!\n")
             username = input("Enter username: ")
@@ -66,9 +68,9 @@ while(True):
             contacts = socket.recv().decode()
             contacts = contacts.splitlines()
             os.system("clear||cls")
-            print("0. Back\n1. Add contact\n2. Remove contact\n3. Refresh contacts")
+            print("0. Back\n1. Logout\n2. Add contact\n3. Remove contact\n4. Refresh contacts")
             for i,contact in enumerate(contacts):
-                print(f"{i+4}. {contact}")
+                print(f"{i+5}. {contact}")
             print("\nEnter option: ", end="")
             option = input()
             if option.isdigit():
@@ -76,9 +78,16 @@ while(True):
             else:
                 input("\nInvalid option!\nPress enter to continue...")
                 continue
+
             if option == 0:
                 break
+
             elif option == 1:
+                CONFIG["username"] = None
+                CONFIG["password"] = None
+                break
+
+            elif option == 2:
                 os.system("clear||cls")
                 contact = input("Enter username: ")
                 if(contact == "!back"): continue
@@ -95,7 +104,7 @@ while(True):
                 else:
                     input("\nContact already added!\nPress enter to continue...")
 
-            elif option == 2:
+            elif option == 3:
                 os.system("clear||cls")
                 print("Select contact to delete\n\n0. Cancel")
                 for i,contact in enumerate(contacts):
@@ -123,11 +132,11 @@ while(True):
                 else:
                     input("\nInvalid option!\nPress enter to continue...")
 
-            elif option == 3:
+            elif option == 4:
                 continue
 
-            elif option > 3 and option <= len(contacts)+3:
-                contact = contacts[option - 4]
+            elif option > 4 and option <= len(contacts) + 4:
+                contact = contacts[option - 5]
                 print("please wait...")
 
                 while True:
@@ -193,7 +202,7 @@ while(True):
     elif option == "3":
         while True:
             os.system("clear||cls")
-            print("0. Back\n1. View saved credentials\n2. Change saved credentials\n3. Change server address\n\nEnter option: ", end="")
+            print("0. Back\n1. View saved credentials\n2. Change saved credentials\n3. Delete saved credentials\n4. Change server address\n\nEnter option: ", end="")
             option = input()
 
             if option == "0":
@@ -214,14 +223,38 @@ while(True):
                 username = input("Enter username: ")
                 password = input("Enter password: ")
                 if username == "!back" or password == "!back": continue
-                else:
-                    CONFIG["username"] = username
-                    CONFIG["password"] = password
+                with open(CONFIG_FILE, "r") as f:
+                    loaded_config = json.load(f)
+                loaded_config["username"] = username
+                loaded_config["password"] = password
                 with open(CONFIG_FILE, "w") as f:
-                    json.dump(CONFIG,f)
-                input("\nUsername and password saved successfully!\nPress Enter to continue...")
-             
+                    json.dump(loaded_config, f)
+                input("\nUsername and password saved successfully!\nRestart app for changes to take effect\nPress Enter to continue...")
+
             elif option == "3":
+                os.system("clear||cls")
+                print("Delete saved credentials?")
+                while True:
+                    confirm = input("Confirm? (y/n): ")
+
+                    if confirm == "y":
+                        with open(CONFIG_FILE, "r") as f:
+                            loaded_config = json.load(f)
+                        loaded_config["username"] = None
+                        loaded_config["password"] = None
+                        with open(CONFIG_FILE, "w") as f:
+                            json.dump(loaded_config, f)
+                        input("\nSaved credentials deleted successfully!\nPress Enter to continue...")
+                        break
+
+                    elif confirm == "n":
+                        input("\nSaved credentials deletion cancelled!\nPress Enter to continue...")
+                        break
+
+                    else:
+                        print("\nInvalid option\n")
+
+            elif option == "4":
                 os.system("clear||cls")
                 print("Current server address:", CONFIG["server"])
                 sev_addr = input("Enter new server address: ")
@@ -231,13 +264,12 @@ while(True):
                     confirm = input("Confirm? (y/n): ")
 
                     if confirm == "y":
-                        CONFIG["server"] = sev_addr
                         with open(CONFIG_FILE, "r") as f:
                             loaded_config = json.load(f)
                         loaded_config["server"] = sev_addr
                         with open(CONFIG_FILE, "w") as f:
                             json.dump(loaded_config, f)
-                        input("\nServer address changed successfully!\nPress Enter to continue...")
+                        input("\nServer address changed successfully!\nRestart app for changes to take effect\nPress Enter to continue...")
                         break
 
                     elif confirm == "n":
