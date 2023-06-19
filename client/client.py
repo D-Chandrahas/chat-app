@@ -35,15 +35,15 @@ while(True):
         os.system("clear||cls")
         if CONFIG["username"] is None:
             username = input("Enter username: ")
+            if username == "!b": continue
             password = input("Enter password: ")
-            if(username == "!back" or password == "!back"):
-                continue
+            if password == "!b": continue
         else:
             username = CONFIG["username"]
             password = CONFIG["password"]
         print("\nPlease wait...")
 
-        continue_loop = False
+        continue_loop = True
 
         while True:
             socket.send_multipart(("login".encode(),username.encode(),password.encode(),"None".encode()))
@@ -51,12 +51,14 @@ while(True):
             if valid_credentials == "True":
                 CONFIG["username"] = username
                 CONFIG["password"] = password
+                continue_loop = False
                 break
             print("Invalid credentials!\n")
             username = input("Enter username: ")
+            if username == "!b":
+                break
             password = input("Enter password: ")
-            if(username == "!back" or password == "!back"):
-                continue_loop = True
+            if password == "!b":
                 break
             print("\nPlease wait...")
 
@@ -90,7 +92,7 @@ while(True):
             elif option == 2:
                 os.system("clear||cls")
                 contact = input("Enter username: ")
-                if(contact == "!back"): continue
+                if(contact == "!b"): continue
                 if(contact == username):
                     input("\nYou cannot add yourself!\nPress enter to continue...")
                     continue
@@ -150,10 +152,10 @@ while(True):
 
                     msg = input(f"{username}: ")
 
-                    if msg == "!back" or msg == "!b":
+                    if msg == "!b":
                         break
 
-                    elif msg == "!refresh" or msg == "!r":
+                    elif msg == "!r":
                         pass
 
                     else:
@@ -170,8 +172,9 @@ while(True):
             os.system("clear||cls")
             #20 char limit and no special characters(?)
             username = input("Enter new username: ")
+            if username == "!b": break
             password = input("Enter new password: ")
-            if(username == "!back" or password == "!back"): break
+            if password == "!b": break
             print("\nPlease wait...")
             socket.send_multipart(("register".encode(),username.encode(),password.encode(),"None".encode()))
             available = socket.recv().decode()
@@ -221,8 +224,9 @@ while(True):
             elif option == "2":
                 os.system("clear||cls")
                 username = input("Enter username: ")
+                if username == "!b": continue
                 password = input("Enter password: ")
-                if username == "!back" or password == "!back": continue
+                if password == "!b": continue
                 with open(CONFIG_FILE, "r") as f:
                     loaded_config = json.load(f)
                 loaded_config["username"] = username
@@ -258,7 +262,7 @@ while(True):
                 os.system("clear||cls")
                 print("Current server address:", CONFIG["server"])
                 sev_addr = input("Enter new server address: ")
-                if sev_addr == "!back": continue
+                if sev_addr == "!b": continue
 
                 while True:
                     confirm = input("Confirm? (y/n): ")
