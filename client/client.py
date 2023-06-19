@@ -24,10 +24,14 @@ socket.connect(CONFIG["server"])
 
 while(True):
     os.system("clear||cls")
-    print("1. Login\n2. Register\n3. Settings\n4. Exit\n\nEnter option: ", end="")
+    print("0. Exit\n1. Login\n2. Register\n3. Settings\n\nEnter option: ", end="")
     option = input()
 
-    if option == "1":
+    if option == "0":
+        os.system("clear||cls")
+        break
+
+    elif option == "1":
         os.system("clear||cls")
         if CONFIG["username"] is None:
             username = input("Enter username: ")
@@ -131,9 +135,9 @@ while(True):
                     socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
                     conv = socket.recv().decode()
                     os.system("clear||cls")
-                    for row in conv.splitlines():
-                        sender, msg = row.split(",")
-                        print(f"{sender}: {msg}")
+                    
+                    for i, item in enumerate(conv.splitlines()):
+                        print(f"{item}: ", end="") if i % 2 == 0 else print(f"{item}")
 
                     msg = input(f"{username}: ")
 
@@ -141,13 +145,7 @@ while(True):
                         break
 
                     elif msg == "!refresh" or msg == "!r":
-                        print("please wait...")
-                        socket.send_multipart(("refresh".encode(),username.encode(),contact.encode(),"None".encode()))
-                        conv = socket.recv().decode()
-                        os.system("clear||cls")
-                        for row in conv.splitlines():
-                            sender, msg = row.split(",")
-                            print(f"{sender}: {msg}")
+                        pass
 
                     else:
                         socket.send_multipart(("msg".encode(),username.encode(),contact.encode(),msg.encode()))
@@ -195,10 +193,13 @@ while(True):
     elif option == "3":
         while True:
             os.system("clear||cls")
-            print("1. View saved credentials\n2. Change saved credentials\n3. Change server address\n4. Back\n\nEnter option: ", end="")
+            print("0. Back\n1. View saved credentials\n2. Change saved credentials\n3. Change server address\n\nEnter option: ", end="")
             option = input()
 
-            if option == "1":
+            if option == "0":
+                break
+
+            elif option == "1":
                 os.system("clear||cls")
                 with open(CONFIG_FILE, "r") as f:
                     loaded_config = json.load(f)
@@ -222,6 +223,7 @@ while(True):
              
             elif option == "3":
                 os.system("clear||cls")
+                print("Current server address:", CONFIG["server"])
                 sev_addr = input("Enter new server address: ")
                 if sev_addr == "!back": continue
 
@@ -245,15 +247,8 @@ while(True):
                     else:
                         print("\nInvalid option\n")
 
-            elif option == "4":
-                break
-
             else:
                 input("Invalid option...Press Enter to continue...")
-
-    elif option == "4":
-        os.system("clear||cls")
-        break
 
     else:
         input("Invalid option...Press Enter to continue...")

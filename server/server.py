@@ -1,7 +1,8 @@
 import zmq
-from time import time,sleep
+from time import time
 import sqlite3
 import os
+import json
 
 
 db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "db.sqlite")
@@ -12,11 +13,23 @@ cur.execute("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, username T
 cur.execute("CREATE TABLE IF NOT EXISTS messages(id INTEGER PRIMARY KEY, sender TEXT, receiver TEXT, message TEXT, time INTEGER)")
 con.commit()
 
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+CONFIG = {
+    "server-addr": "tcp://*:3000"
+}
+
+if os.path.isfile(CONFIG_FILE):
+    with open(CONFIG_FILE, "r") as f:
+        CONFIG = json.load(f)
+else:
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(CONFIG, f)
+
 context = zmq.Context()
 socket = context.socket(zmq.REP)
-socket.bind("tcp://*:3000")
+socket.bind(CONFIG["server-addr"])
 
-print("Server started")
+print("Server started on", CONFIG["server-addr"])
 
 while True:
     type,part1,part2,part3 = socket.recv_multipart()
@@ -37,7 +50,7 @@ while True:
         res = cur.execute("SELECT sender,message FROM messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY time ASC",(part1,part2,part2,part1))
         data = ""
         while((row := res.fetchone()) is not None):
-            data += f"{row[0]},{row[1]}\n"
+            data += f"{row[0]}\n{row[1]}\n"
         socket.send(data.encode())
 
     elif(type == "contacts"):
@@ -97,8 +110,8 @@ while True:
         socket.send("True".encode())
         break
 
-    print(f"[{time()}] replied to {type} request")
+    print(f"[{time()}] replied to {type} request\n")
 
-    sleep(1)
+
 print("Server terminated")
 socket.close()
