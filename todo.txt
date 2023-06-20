@@ -1,2 +1,0 @@
-add logging to server
-readme
