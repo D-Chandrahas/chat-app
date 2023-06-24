@@ -54,4 +54,5 @@ These settings are saved in `./client/config.json`
 - If there is no `back` or `cancel` option, type `!b` and press enter to go back.
 - Unicode and emoji support depends on the terminal you are using.  
 - Save your credentials either while registering or later in the settings page to avoid having to type them every time.
+- New messages are not fetched automatically. You must fetch them with `!r` in the chat window.
 
