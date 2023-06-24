@@ -24,7 +24,7 @@ socket.connect(CONFIG["server"])
 
 while(True):
     os.system("clear||cls")
-    print("0. Exit\n1. Login\n2. Register\n3. Settings\n\nEnter option: ", end="")
+    print("Main Menu\n\n0. Exit\n1. Login\n2. Register\n3. Settings\n\nEnter option: ", end="")
     option = input()
 
     if option == "0":
@@ -33,6 +33,7 @@ while(True):
 
     elif option == "1":
         os.system("clear||cls")
+        print("Login\n")
         if CONFIG["username"] is None:
             username = input("Enter username: ")
             if username == "!b": continue
@@ -70,7 +71,7 @@ while(True):
             contacts = socket.recv().decode()
             contacts = contacts.splitlines()
             os.system("clear||cls")
-            print("0. Back\n1. Logout\n2. Add contact\n3. Remove contact\n4. Refresh contacts")
+            print("Contacts\n\n0. Back\n1. Logout\n2. Add contact\n3. Remove contact\n4. Refresh contacts\n---------------------")
             for i,contact in enumerate(contacts):
                 print(f"{i+5}. {contact}")
             print("\nEnter option: ", end="")
@@ -91,6 +92,7 @@ while(True):
 
             elif option == 2:
                 os.system("clear||cls")
+                print("Add contact\n")
                 contact = input("Enter username: ")
                 if(contact == "!b"): continue
                 if(contact == username):
@@ -108,7 +110,7 @@ while(True):
 
             elif option == 3:
                 os.system("clear||cls")
-                print("Select contact to delete\n\n0. Cancel")
+                print("Select contact to delete\n\n0. Cancel\n--------------")
                 for i,contact in enumerate(contacts):
                     print(f"{i+1}. {contact}")
                 contact_index = input("\nEnter option: ")
@@ -171,6 +173,7 @@ while(True):
         while True:
             os.system("clear||cls")
             #20 char limit and no special characters(?)
+            print("Register\n")
             username = input("Enter new username: ")
             if username == "!b": break
             password = input("Enter new password: ")
@@ -205,7 +208,7 @@ while(True):
     elif option == "3":
         while True:
             os.system("clear||cls")
-            print("0. Back\n1. View saved credentials\n2. Change saved credentials\n3. Delete saved credentials\n4. Change server address\n\nEnter option: ", end="")
+            print("Settings\n\n0. Back\n1. View saved credentials\n2. Change saved credentials\n3. Delete saved credentials\n4. Change server address\n\nEnter option: ", end="")
             option = input()
 
             if option == "0":
@@ -213,6 +216,7 @@ while(True):
 
             elif option == "1":
                 os.system("clear||cls")
+                print("Saved credentials\n")
                 with open(CONFIG_FILE, "r") as f:
                     loaded_config = json.load(f)
                 if loaded_config["username"] is not None:
@@ -223,6 +227,7 @@ while(True):
 
             elif option == "2":
                 os.system("clear||cls")
+                print("Change saved credentials\n")
                 username = input("Enter username: ")
                 if username == "!b": continue
                 password = input("Enter password: ")
